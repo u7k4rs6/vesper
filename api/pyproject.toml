@@ -1,0 +1,30 @@
+[project]
+name = "vesper"
+version = "0.1.0"
+description = "Vesper brings customers back to pay when a PayPal payment fails, and never touches their money."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "httpx>=0.27",
+    "structlog>=24.1",
+    "babel>=2.15",
+    "langdetect>=1.0.9",
+    "slowapi>=0.1.9",
+    "psycopg[binary]>=3.2",
+    "anthropic>=1.11.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "respx>=0.21"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

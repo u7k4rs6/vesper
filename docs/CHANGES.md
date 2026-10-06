@@ -1,0 +1,18 @@
+# Changes to the specs
+
+Decisions that change something in `01`–`04`. The four specs are not edited in place.
+
+- **2026-10-05** — Product is named **Vesper**; the specs' "Recoup" means Vesper everywhere (package `vesper`, UI copy, demo merchant "Vesper Demo Store"). Owner's decision.
+- **2026-10-05** — Scripts live in `api/scripts/`, not a root `scripts/`, because every documented command runs `python -m scripts.*` from inside `api/`.
+- **2026-10-05** — `customers.city` added (nullable) so the Floor can show "{first_name} · {city or country}" as the frontend spec requires.
+- **2026-10-05** — `cases.frozen` added (bool) to record an open dispute for rule R6; the architecture spec says "mark the related case frozen" but listed no column.
+- **2026-10-05** — Message validation also rejects links (`http`, `www.`, `://`), matching the security spec's test name `test_message_validate_rejects_digits_links_and_banned_phrases`; banned phrases are checked in every language list, not only the customer's.
+- **2026-10-05** — Rule R1 refusal leaves the case `held` (architecture §6.5), not `closed` as PRD §9 phrases it; R6 refusal closes the case.
+- **2026-10-06** — Simulated webhook events (`/v1/notifications/simulate-event`) pass `verify-webhook-signature` in sandbox (tested with `PAYMENT.CAPTURE.DENIED`), so `DEMO_FAIL_STRATEGY=simulate_event` stays; the internal seeding fallback is not needed.
+- **2026-10-06** — `register_webhook` updates the existing webhook's URL (PATCH) when `PAYPAL_WEBHOOK_ID` is set, so a changed tunnel URL does not create a new webhook or a new id.
+- **2026-10-06** — Groq provider dropped; Anthropic (`claude-opus-5-5`, structured JSON output, effort `low`, server-side refusal fallback) and the test fixture are the only providers, since only one is needed and Anthropic is the one configured.
+- **2026-10-06** — The Agent Toolkit is not installed in Phase 1 (PRD §14 puts it in Phase 2); `test_toolkit_allowlist_has_no_write_tools` asserts nothing imports it until it lands with its allowlist.
+- **2026-10-06** — The sandbox buyer must be a non-India PayPal account: PayPal refuses to send invoices to recipients in India (`INR_FOREIGN_CURRENCY_BLOCKED`), observed on the first live send.
+- **2026-10-06** — "Held back today" counts today's cases whose rules refused or deferred a send (final outcome `refuse` or `defer`); the spec named the number but not its exact definition.
+- **2026-10-06** — `/api/metrics/today` sums recovered amounts in one `MERCHANT_CURRENCY` (default USD) and `/api/settings` adds `currency` and `merchant_timezone`, so the Floor shows one honest total and the Timeline can use the merchant's clock.
+- **2026-10-06** — List rows use "2 min ago" / "1 h ago" (the spec's short form) rather than Intl's "2 min. ago"; the Floor sub-line says "from 1 payment" in the singular.

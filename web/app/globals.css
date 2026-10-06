@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* Tokens from docs/03_FRONTEND_SPEC.md §1. Dark mode is an inversion of the same palette. */
+:root {
+  --paper: #f7f7f5;
+  --surface: #ffffff;
+  --ink: #14181c;
+  --ink-2: #5c6670;
+  --line: #dadfe3;
+  --recovered: #1d7a55;
+  --deferred: #a86a00;
+  --refused: #b3261e;
+  --action: #0b5fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14181c;
+    --surface: #1b2126;
+    --ink: #f2f3f1;
+    --ink-2: #a3acb4;
+    --line: #333b42;
+    --recovered: #4fbf8e;
+    --deferred: #e0a640;
+    --refused: #f0766d;
+    --action: #6b9dff;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-line: var(--line);
+  --color-recovered: var(--recovered);
+  --color-deferred: var(--deferred);
+  --color-refused: var(--refused);
+  --color-action: var(--action);
+  --font-sans: var(--font-plex), system-ui, sans-serif;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Motion only when something changes (§1 principle 4). Disabled under prefers-reduced-motion above. */
+.dot {
+  transition: background-color 240ms ease, border-color 240ms ease;
+}
+@keyframes vesper-flash {
+  from { background-color: var(--paper); }
+  to { background-color: var(--surface); }
+}
+.row-flash {
+  animation: vesper-flash 600ms ease-out;
+}
+@keyframes vesper-enter {
+  from { grid-template-rows: 0fr; }
+  to { grid-template-rows: 1fr; }
+}
+.row-enter {
+  display: grid;
+  animation: vesper-enter 240ms ease-out;
+}
+.row-enter > * {
+  overflow: hidden;
+  min-height: 0;
+}
