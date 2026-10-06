@@ -141,3 +141,12 @@ def test_events_are_written_to_the_timeline(api, paypal, session_factory):
     with session_factory() as s:
         kinds = [e.kind for e in s.scalars(select(CaseEvent).order_by(CaseEvent.at))]
     assert kinds == ["created", "webhook"]
+
+
+def test_simulated_capture_without_v2_amount_still_creates_demo_case(api, paypal, session_factory):
+    verified(paypal)
+    event = {"id": "WH-V1", "event_type": "PAYMENT.CAPTURE.DENIED",
+             "resource": {"id": "CAP-V1", "amount": {"total": "7.47", "currency": "USD"}}}
+    assert post(api, event).status_code == 200
+    [case] = cases(session_factory)
+    assert str(case.amount) == "89.00" and case.description == "Linen Throw"

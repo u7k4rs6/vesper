@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     contact_window_end: str = "20:00"
     kill_switch: bool = False
     demo_mode: bool = True
-    demo_fail_strategy: Literal["simulate_event", "internal"] = "simulate_event"
+    demo_fail_strategy: Literal["simulate_event", "internal"] = "internal"
     demo_subscription_amount: Decimal = Decimal("29.00")
     llm_provider: Literal["anthropic", "fixture"] = "anthropic"
     llm_model: str = "claude-opus-5-5"

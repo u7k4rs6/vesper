@@ -100,8 +100,8 @@ def _order_id(capture: dict) -> str | None:
     return ((capture.get("supplementary_data") or {}).get("related_ids") or {}).get("order_id")
 
 
-def _customer_for_order(session: Session, client: PayPalClient, order_id: str | None):
-    """The payer from the order, or the next demo customer when PayPal has no usable payer (simulated events)."""
+def _payer_for_order(session: Session, client: PayPalClient, order_id: str | None):
+    """The payer from the order, or None when PayPal has no usable payer (simulated events)."""
     if order_id:
         try:
             email, name, country = orders._payer(orders.get_order(client, order_id))
@@ -109,22 +109,30 @@ def _customer_for_order(session: Session, client: PayPalClient, order_id: str | 
                 return resolve_customer(session, email, name, country)
         except Exception:
             pass
-    return next_demo_customer(session)
+    return None
 
 
 def _capture_case(source: Source, failure_code: str):
     def handler(session: Session, client: PayPalClient, res: dict, result: DispatchResult) -> None:
         money = _amount(res.get("amount"))
-        if money is None:
-            return
         order_id = _order_id(res)
+        customer = _payer_for_order(session, client, order_id)
+        description = "Order " + (order_id or res.get("id", ""))
+        if customer is None:
+            # A simulated event: PayPal's sample payer and amount are arbitrary, so use the demo store's product.
+            customer = next_demo_customer(session)
+            if get_settings().demo_mode:
+                money, description = (Decimal("89.00"), "USD"), "Linen Throw"
+        if money is None:
+            log.warning("webhook_no_amount", event_type=source.value)
+            return
         case = create_case(
             session,
             source=source,
-            customer=_customer_for_order(session, client, order_id),
+            customer=customer,
             amount=money[0],
             currency=money[1],
-            description="Order " + (order_id or res.get("id", "")),
+            description=description,
             failure_code=failure_code,
             paypal_order_id=order_id,
             paypal_capture_id=res.get("id"),

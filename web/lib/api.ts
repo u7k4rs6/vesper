@@ -28,6 +28,14 @@ export const api = {
   case: (id: string) => call<CaseDetail>(`/cases/${encodeURIComponent(id)}`),
   rules: () => call<{ rules: Rule[] }>("/rules"),
   settings: () => call<Settings>("/settings"),
+  approve: (id: string) => call<{ stage: string }>(`/cases/${encodeURIComponent(id)}/approve`, { method: "POST" }),
+  decline: (id: string) => call<{ stage: string }>(`/cases/${encodeURIComponent(id)}/decline`, { method: "POST" }),
+  failPayment: (kind: "subscription" | "capture_denied") =>
+    call<{ ok: boolean }>("/demo/fail", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind }),
+    }),
   createStoreOrder: () => call<{ order_id: string }>("/demo/store/orders", { method: "POST" }),
   captureStoreOrder: (orderId: string, forceDecline: boolean) =>
     call<CaptureResult>(

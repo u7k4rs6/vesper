@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ApprovalPanel } from "@/components/ApprovalPanel";
 import { use } from "react";
 import useSWR from "swr";
 import { TONE_CLASS } from "@/components/CaseRow";
@@ -112,6 +113,10 @@ export default function CasePage({ params }: { params: Promise<{ id: string }> }
         <Panel title="Checks">
           <ChecksTable verdicts={c.verdicts} />
         </Panel>
+
+        {c.stage === "awaiting_approval" && (
+          <ApprovalPanel caseId={c.id} amount={c.amount} currency={c.currency} threshold={settings?.approval_threshold} />
+        )}
 
         <MessagePanel c={c} />
 

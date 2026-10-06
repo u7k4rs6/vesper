@@ -11,7 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from vesper.config import get_settings
 from vesper.limits import limiter
-from vesper.routes import dashboard, store, webhooks
+from vesper.routes import approvals, dashboard, demo, store, webhooks
 from vesper.scheduler import run_forever
 
 settings = get_settings()  # aborts startup unless PAYPAL_ENV=sandbox
@@ -65,5 +65,7 @@ def health():
 
 app.include_router(webhooks.router)
 app.include_router(dashboard.router)
+app.include_router(approvals.router)
 if settings.demo_mode:
     app.include_router(store.router)
+    app.include_router(demo.router)

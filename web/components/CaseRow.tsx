@@ -14,6 +14,9 @@ export const TONE_CLASS: Record<Tone, string> = {
 
 export function CaseRow({ row, flash, actions }: { row: Row; flash?: boolean; actions?: React.ReactNode }) {
   const view = stageToDots(row.stage);
+  // Fixed columns line up amounts and statuses on the Floor; rows with buttons need the room for the name.
+  const amountCol = actions ? "" : "sm:w-24 sm:text-right";
+  const statusCol = actions ? "" : "sm:w-52";
   const secondary = [SOURCE_WORDS[row.source], relativeTime(row.created_at)];
   if (row.reason_short) secondary.push(row.reason_short);
   return (
@@ -24,12 +27,12 @@ export function CaseRow({ row, flash, actions }: { row: Row; flash?: boolean; ac
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-baseline gap-x-4">
-            <span className="min-w-0 flex-1 truncate font-medium">
+            <span className="min-w-0 flex-1 font-medium">
               {row.first_name} · {row.place}
             </span>
             <span className="flex basis-full items-baseline gap-4 sm:basis-auto">
-              <span className="sm:w-24 sm:text-right">{money(row.amount, row.currency)}</span>
-              <span className={`sm:w-52 ${TONE_CLASS[view.tone]}`}>{view.label}</span>
+              <span className={amountCol}>{money(row.amount, row.currency)}</span>
+              <span className={`${statusCol} ${TONE_CLASS[view.tone]}`}>{view.label}</span>
             </span>
           </span>
           <span className="block text-[13px] leading-5 text-ink-2">{secondary.join(" · ")}</span>

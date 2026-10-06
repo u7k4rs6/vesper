@@ -11,6 +11,9 @@ async function forward(req: NextRequest, { params }: { params: Promise<{ path: s
   }
   const url = `${API}/api/${path.map(encodeURIComponent).join("/")}${req.nextUrl.search}`;
   const headers: Record<string, string> = { "X-Dashboard-Token": process.env.DASHBOARD_TOKEN ?? "" };
+  // The API rate-limits the demo button per browser, so pass the browser's address along.
+  const client = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip");
+  if (client) headers["X-Forwarded-For"] = client;
   const contentType = req.headers.get("content-type");
   if (contentType) headers["Content-Type"] = contentType;
   try {
