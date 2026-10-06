@@ -2,14 +2,19 @@
 // The browser never sees DASHBOARD_TOKEN (docs/03_FRONTEND_SPEC.md §9).
 import { NextRequest } from "next/server";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Read per request so the API address can change without rebuilding. A bare host gets https.
+function apiBase(): string {
+  const raw = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  const url = raw.includes("://") ? raw : `https://${raw}`;
+  return url.replace(/\/+$/, "");
+}
 
 async function forward(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   if (path.some((p) => p === ".." || p === ".")) {
     return Response.json({ error: { code: "bad_path", message: "Bad path." } }, { status: 400 });
   }
-  const url = `${API}/api/${path.map(encodeURIComponent).join("/")}${req.nextUrl.search}`;
+  const url = `${apiBase()}/api/${path.map(encodeURIComponent).join("/")}${req.nextUrl.search}`;
   const headers: Record<string, string> = { "X-Dashboard-Token": process.env.DASHBOARD_TOKEN ?? "" };
   // The API rate-limits the demo button per browser, so pass the browser's address along.
   const client = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip");

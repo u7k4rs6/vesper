@@ -1,0 +1,86 @@
+# Render Blueprint (docs/02_TECHNICAL_ARCHITECTURE.md §9).
+# Deploy order: api -> register the webhook against the api URL -> set PAYPAL_WEBHOOK_ID -> set API_URL on web.
+
+envVarGroups:
+  - name: vesper-shared
+    envVars:
+      - key: DASHBOARD_TOKEN # the web proxy adds it server-side; the browser never sees it
+        generateValue: true
+
+databases:
+  - name: vesper-db
+    plan: free
+    region: singapore
+    postgresMajorVersion: "17"
+    databaseName: vesper
+    user: vesper
+
+services:
+  - type: web
+    name: vesper-api
+    runtime: python
+    plan: free
+    region: singapore
+    rootDir: api
+    buildCommand: uv sync --frozen --no-dev
+    startCommand: .venv/bin/alembic upgrade head && .venv/bin/python -m scripts.seed_demo && .venv/bin/uvicorn vesper.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: vesper-shared
+      - key: PYTHON_VERSION
+        value: 3.12.13
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vesper-db
+          property: connectionString
+      - key: PAYPAL_ENV
+        value: sandbox
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID # filled after the first deploy, from scripts.register_webhook
+        sync: false
+      - key: SANDBOX_BUYER_EMAIL
+        sync: false
+      - key: LLM_PROVIDER
+        value: anthropic
+      - key: LLM_MODEL
+        value: claude-opus-5-5
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MAX_CALLS_PER_HOUR
+        value: "200"
+      - key: MERCHANT_NAME
+        value: Vesper Demo Store
+      - key: MERCHANT_TIMEZONE
+        value: Asia/Kolkata
+      - key: APPROVAL_THRESHOLD
+        value: "500.00"
+      - key: KILL_SWITCH
+        value: "false"
+      - key: DEMO_MODE
+        value: "true"
+      - key: DEMO_FAIL_STRATEGY
+        value: internal
+      - key: LOG_LEVEL
+        value: info
+
+  - type: web
+    name: vesper-web
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: web
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: vesper-shared
+      - key: NODE_VERSION
+        value: "22"
+      - key: API_URL # the vesper-api URL, e.g. https://vesper-api.onrender.com, set after the api is live
+        sync: false
+      - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID # the sandbox client ID; public by design, read at build time
+        sync: false

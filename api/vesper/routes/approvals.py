@@ -4,6 +4,7 @@ the case has moved on returns 409."""
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from vesper.auth import require_dashboard_token
@@ -16,7 +17,8 @@ router = APIRouter(prefix="/api/cases", dependencies=[Depends(require_dashboard_
 
 
 def _awaiting(session: Session, case_id: str) -> Case:
-    case = session.get(Case, case_id, with_for_update=True)
+    # Lock only the cases row: Postgres refuses FOR UPDATE on the outer-joined customer.
+    case = session.scalars(select(Case).where(Case.id == case_id).with_for_update(of=Case)).first()
     if case is None:
         raise HTTPException(status_code=404, detail="case not found")
     if case.stage != Stage.awaiting_approval:

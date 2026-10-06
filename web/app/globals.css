@@ -37,7 +37,7 @@
   --color-deferred: var(--deferred);
   --color-refused: var(--refused);
   --color-action: var(--action);
-  --font-sans: var(--font-plex), system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
 }
 
 body {

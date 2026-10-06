@@ -25,9 +25,17 @@ SANDBOX = "https://api-m.sandbox.paypal.com"
 
 @pytest.fixture
 def session_factory():
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    # TEST_DATABASE_URL=postgresql+psycopg://... runs the suite against Postgres, as deployed.
+    url = os.environ.get("TEST_DATABASE_URL")
+    if url:
+        engine = create_engine(url)
+        Base.metadata.drop_all(engine)
+    else:
+        engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     yield sessionmaker(bind=engine, expire_on_commit=False)
+    if url:
+        Base.metadata.drop_all(engine)
     engine.dispose()
 
 
