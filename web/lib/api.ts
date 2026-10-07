@@ -30,8 +30,8 @@ export const api = {
   settings: () => call<Settings>("/settings"),
   approve: (id: string) => call<{ stage: string }>(`/cases/${encodeURIComponent(id)}/approve`, { method: "POST" }),
   decline: (id: string) => call<{ stage: string }>(`/cases/${encodeURIComponent(id)}/decline`, { method: "POST" }),
-  failPayment: (kind: "subscription" | "capture_denied") =>
-    call<{ ok: boolean }>("/demo/fail", {
+  failPayment: (kind: "subscription" | "capture_denied" | "big_order") =>
+    call<{ ok: boolean; case_id?: string }>("/demo/fail", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ kind }),

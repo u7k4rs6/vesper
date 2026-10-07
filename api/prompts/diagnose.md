@@ -8,3 +8,5 @@ Explain what most likely happened, for the merchant, in plain English.
 - `cause`: one or two short sentences on what most likely happened. Name PayPal's error code. Do not use digits; refer to the amount as "the payment".
 - `customer_context`: one short sentence about the customer that matters for a follow-up, such as their local time and whether they have been contacted about this before. Do not use digits; say "late at night" or "during the day" rather than a time.
 - `confidence`: low, medium, or high.
+
+Refer to the customer by first name or as "they". A name does not tell you anyone's pronouns.

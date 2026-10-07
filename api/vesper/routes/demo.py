@@ -26,7 +26,16 @@ RESOURCE_VERSIONS = {"capture_denied": "2.0"}
 
 
 class FailRequest(BaseModel):
-    kind: Literal["subscription", "capture_denied"]
+    kind: Literal["subscription", "capture_denied", "big_order"]
+
+
+# What each demo choice seeds: (amount, description, PayPal failure code). big_order sits above the $500
+# approval threshold so it stops at the Approvals step.
+SEEDS = {
+    "subscription": (None, "Monthly plan", "SUBSCRIPTION_PAYMENT_FAILED"),
+    "capture_denied": (Decimal("89.00"), "Linen Throw", "DENIED"),
+    "big_order": (Decimal("640.00"), "Annual team plan", "INSTRUMENT_DECLINED"),
+}
 
 
 @router.post("/fail")
@@ -38,20 +47,22 @@ def fail_a_payment(
     settings = get_settings()
     if settings.demo_fail_strategy == "internal":
         # Fallback when simulated events cannot be verified: create the case directly, labelled "Seeded for demo".
-        sub = body.kind == "subscription"
+        amount, description, failure_code = SEEDS[body.kind]
         case = create_case(
             session,
             source=Source.seeded,
             customer=next_demo_customer(session),
-            amount=settings.demo_subscription_amount if sub else Decimal("89.00"),
+            amount=amount or settings.demo_subscription_amount,
             currency="USD",
-            description="Monthly plan" if sub else "Linen Throw",
-            failure_code="SUBSCRIPTION_PAYMENT_FAILED" if sub else "DENIED",
+            description=description,
+            failure_code=failure_code,
         )
         session.commit()
         background.add_task(run_case_in_new_session, case.id)
         return {"ok": True, "strategy": "internal", "case_id": case.id}
 
+    if body.kind not in EVENT_TYPES:
+        return JSONResponse(status_code=400, content={"error": {"code": "unsupported", "message": "This scenario can only be seeded (DEMO_FAIL_STRATEGY=internal)."}})
     try:
         get_client().request(
             "POST",

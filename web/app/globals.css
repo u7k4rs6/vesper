@@ -1,30 +1,27 @@
 @import "tailwindcss";
 
-/* Tokens from docs/03_FRONTEND_SPEC.md §1. Dark mode is an inversion of the same palette. */
+/* Light, editorial. Paper with a faint grid, near-black ink, one colour per state (docs/CHANGES.md 2026-10-07). */
 :root {
-  --paper: #f7f7f5;
+  --paper: #f5f4ef;
+  --grid: rgba(17, 20, 24, 0.045);
   --surface: #ffffff;
-  --ink: #14181c;
-  --ink-2: #5c6670;
-  --line: #dadfe3;
+  --ink: #111418;
+  --ink-2: #5a636c;
+  --ink-3: #8a9198;
+  --line: #dcdad3;
+  --line-strong: #111418;
   --recovered: #1d7a55;
+  --recovered-soft: #e3f1ea;
   --deferred: #a86a00;
+  --deferred-soft: #f8edd9;
   --refused: #b3261e;
+  --refused-soft: #f7e2e0;
   --action: #0b5fff;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #14181c;
-    --surface: #1b2126;
-    --ink: #f2f3f1;
-    --ink-2: #a3acb4;
-    --line: #333b42;
-    --recovered: #4fbf8e;
-    --deferred: #e0a640;
-    --refused: #f0766d;
-    --action: #6b9dff;
-  }
+  /* Who acted at each step. */
+  --paypal: #0b5fff;
+  --model: #6b46ff;
+  --code: #111418;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -32,26 +29,127 @@
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
   --color-line: var(--line);
   --color-recovered: var(--recovered);
+  --color-recovered-soft: var(--recovered-soft);
   --color-deferred: var(--deferred);
+  --color-deferred-soft: var(--deferred-soft);
   --color-refused: var(--refused);
+  --color-refused-soft: var(--refused-soft);
   --color-action: var(--action);
+  --color-paypal: var(--paypal);
+  --color-model: var(--model);
   --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 body {
-  background: var(--paper);
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 15px;
   line-height: 24px;
   font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Shared styles live in the components layer so Tailwind utilities (e.g. text-recovered) can override them. */
+@layer components {
+/* Small mono labels, the one place uppercase is used. */
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.display {
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 11px 16px;
+  border: 1px solid var(--line-strong);
+  transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-primary:hover:not(:disabled) {
+  background: #2a3038;
+}
+.btn-ghost {
+  background: var(--surface);
+  color: var(--ink);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--paper);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
 }
 
 :focus-visible {
   outline: 2px solid var(--action);
   outline-offset: 2px;
+}
+
+/* Motion only when something changes. */
+.dot {
+  transition: background-color 240ms ease, border-color 240ms ease;
+}
+@keyframes vesper-flash {
+  from { background-color: var(--deferred-soft); }
+  to { background-color: var(--surface); }
+}
+.row-flash {
+  animation: vesper-flash 700ms ease-out;
+}
+@keyframes vesper-enter {
+  from { grid-template-rows: 0fr; }
+  to { grid-template-rows: 1fr; }
+}
+.row-enter {
+  display: grid;
+  animation: vesper-enter 260ms ease-out;
+}
+.row-enter > * {
+  overflow: hidden;
+  min-height: 0;
+}
+@keyframes vesper-reveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.reveal {
+  animation: vesper-reveal 320ms ease-out both;
+}
+@keyframes vesper-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.pulse {
+  animation: vesper-pulse 1.2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -61,28 +159,4 @@ body {
     transition: none !important;
     animation: none !important;
   }
-}
-
-/* Motion only when something changes (§1 principle 4). Disabled under prefers-reduced-motion above. */
-.dot {
-  transition: background-color 240ms ease, border-color 240ms ease;
-}
-@keyframes vesper-flash {
-  from { background-color: var(--paper); }
-  to { background-color: var(--surface); }
-}
-.row-flash {
-  animation: vesper-flash 600ms ease-out;
-}
-@keyframes vesper-enter {
-  from { grid-template-rows: 0fr; }
-  to { grid-template-rows: 1fr; }
-}
-.row-enter {
-  display: grid;
-  animation: vesper-enter 240ms ease-out;
-}
-.row-enter > * {
-  overflow: hidden;
-  min-height: 0;
 }

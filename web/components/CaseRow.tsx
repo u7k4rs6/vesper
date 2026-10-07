@@ -14,31 +14,22 @@ export const TONE_CLASS: Record<Tone, string> = {
 
 export function CaseRow({ row, flash, actions }: { row: Row; flash?: boolean; actions?: React.ReactNode }) {
   const view = stageToDots(row.stage);
-  // Fixed columns line up amounts and statuses on the Floor; rows with buttons need the room for the name.
-  const amountCol = actions ? "" : "sm:w-24 sm:text-right";
-  const statusCol = actions ? "" : "sm:w-52";
   const secondary = [SOURCE_WORDS[row.source], relativeTime(row.created_at)];
   if (row.reason_short) secondary.push(row.reason_short);
   return (
-    <div className={`flex items-start gap-4 border-b border-line bg-surface ${flash ? "row-flash" : ""}`}>
-      <Link href={`/cases/${row.id}`} className="flex min-w-0 flex-1 gap-4 px-4 py-3">
-        <span className="pt-1">
-          <StageDots stage={row.stage} />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-baseline gap-x-4">
-            <span className="min-w-0 flex-1 font-medium">
-              {row.first_name} · {row.place}
-            </span>
-            <span className="flex basis-full items-baseline gap-4 sm:basis-auto">
-              <span className={amountCol}>{money(row.amount, row.currency)}</span>
-              <span className={`${statusCol} ${TONE_CLASS[view.tone]}`}>{view.label}</span>
-            </span>
+    <div className={`flex flex-wrap items-center gap-x-4 border-b border-line bg-surface hover:bg-paper/60 ${flash ? "row-flash" : ""}`}>
+      <Link href={`/cases/${row.id}`} className="grid min-w-0 flex-1 grid-cols-[86px_1fr] items-center gap-x-4 px-4 py-3.5 sm:grid-cols-[86px_1fr_110px_210px] sm:px-5">
+        <StageDots stage={row.stage} />
+        <span className="min-w-0">
+          <span className="block truncate font-medium">
+            {row.first_name} · {row.place}
           </span>
-          <span className="block text-[13px] leading-5 text-ink-2">{secondary.join(" · ")}</span>
+          <span className="block truncate text-[13px] leading-5 text-ink-2">{secondary.join(" · ")}</span>
         </span>
+        <span className="col-start-2 font-mono sm:col-start-auto sm:text-right">{money(row.amount, row.currency)}</span>
+        <span className={`label col-start-2 sm:col-start-auto ${TONE_CLASS[view.tone]}`}>{view.label}</span>
       </Link>
-      {actions && <div className="flex shrink-0 items-center gap-2 py-3 pr-4">{actions}</div>}
+      {actions && <div className="flex shrink-0 items-center gap-2 px-4 pb-3 sm:py-3">{actions}</div>}
     </div>
   );
 }

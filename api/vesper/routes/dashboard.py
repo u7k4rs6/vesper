@@ -159,4 +159,6 @@ def settings_route():
         "kill_switch": s.kill_switch,
         "merchant_name": s.merchant_name,
         "merchant_timezone": s.merchant_timezone,
+        # Demo only: the sandbox buyer judges log in as. A sandbox address, already public in the README.
+        "sandbox_buyer_email": s.sandbox_buyer_email if s.demo_mode else None,
     }

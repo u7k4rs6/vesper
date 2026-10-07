@@ -28,7 +28,7 @@ export function CaseList({ rows, actions }: { rows: Row[]; actions?: (row: Row) 
   }, [rows]);
 
   return (
-    <div className="border-t border-line">
+    <div className="border-t border-x border-line">
       {rows.map((row) => (
         <div key={row.id} className={entering.has(row.id) ? "row-enter" : undefined}>
           <div>

@@ -62,3 +62,11 @@ def test_metrics_count_recovered_and_held_back(api, session_factory):
 
 def test_rules_lists_eight(api):
     assert [r["id"] for r in api.get("/api/rules", headers=AUTH).json()["rules"]] == [f"R{i}" for i in range(1, 9)]
+
+
+def test_settings_show_sandbox_buyer_only_in_demo_mode(api, monkeypatch):
+    from vesper.config import get_settings
+
+    assert api.get("/api/settings", headers=AUTH).json()["sandbox_buyer_email"] == "buyer@example.com"
+    monkeypatch.setattr(get_settings(), "demo_mode", False)
+    assert api.get("/api/settings", headers=AUTH).json()["sandbox_buyer_email"] is None

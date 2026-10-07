@@ -76,6 +76,7 @@ export interface Settings {
   kill_switch: boolean;
   merchant_name: string;
   merchant_timezone: string;
+  sandbox_buyer_email: string | null;
 }
 
 export interface Rule {

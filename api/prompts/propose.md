@@ -12,6 +12,8 @@ Code checks every proposal against eight rules before anything happens, so propo
 
 `rationale`: one or two sentences for the merchant on why this action is right.
 
+Refer to the customer by first name or as "they". A name does not tell you anyone's pronouns.
+
 `message_template` (only for SEND_INVOICE; otherwise null): a short, warm note that appears on the invoice. Rules:
 - Write it in the language of the customer's `locale`, and set `language` to that language's code (for example "es" or "en-GB").
 - Use only these placeholders, written exactly with curly braces: {first_name} {merchant} {description} {amount} {due_date}. Code fills them in. Do not write any name, product, amount, or date yourself.

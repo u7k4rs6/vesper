@@ -20,27 +20,27 @@ Language models hallucinate, which is why fintech teams don't let them near mone
 
 ## Try it (judges)
 
-1. Open the [live demo](https://vesper-web-jilz.onrender.com). You land on the Floor.
-2. Press **Fail a payment** and choose **Subscription renewal**. Within about 20 seconds a new case appears and moves through Diagnosed, Proposed and Checked.
-3. Open it. You'll see Claude's diagnosis, its proposal, all eight verdicts, and the message in the customer's language.
-4. If the invoice was sent, open **Open the PayPal invoice** and pay it as the sandbox buyer below. The case turns **Recovered** through PayPal's webhook, and the number on the Floor goes up.
-5. Optional: open [`/demo/store`](https://vesper-web-jilz.onrender.com/demo/store), leave **Make this payment fail** ticked, and check out as the sandbox buyer. PayPal returns a real `INSTRUMENT_DECLINED` and Vesper opens a case from it.
+1. Open the [live demo](https://vesper-web-jilz.onrender.com). The page explains the five steps and offers three failures.
+2. Press **Fail a renewal**. The case appears below and fills in step by step in about 20 seconds: what PayPal reported, Claude's diagnosis, its proposal and message, and the eight rules' verdicts, each step labelled with who did it.
+3. If the invoice was sent, press **Pay as the customer** and pay as the sandbox buyer below. The case turns **Recovered** on its own when PayPal's webhook arrives.
+4. Press **Fail a big order** to see a $640 case stop for your approval, right on the page.
+5. Or buy the Linen Throw in card 02 with **Make the payment fail** ticked: PayPal returns a real `INSTRUMENT_DECLINED` and Vesper opens the case.
 
 Sandbox buyer (PayPal sandbox only, created for this project, rotated after judging):
 
 - Email: `sb-lk5z253198683@personal.example.com`
 - Password: provided in the submission form
 
-Which customer a press produces rotates through six demo customers in different time zones, so you'll also see invoices queued for 09:00 local, an opted-out customer left alone, and hard failures closed without contact. Cases at or above $500 wait on the **Approvals** screen.
+Each press picks the next of six demo customers in different time zones, so you'll also see invoices queued for 09:00 local time, a rule holding a message back, and an opted-out customer left alone. The **Floor** shows every case; **Approvals** lists those waiting for a person.
 
 ## Features
 
-- **Floor**: two numbers (Recovered today, Held back today) and every case with a five-step progress indicator, updating live.
-- **Case**: what happened, what Vesper proposed, the eight checks with a reason each, the exact message, and an append-only timeline.
+- **Demo**: one page that explains the loop and runs it live, from the failure to the recovery.
+- **Floor**: recovered today, held back, queued and waiting for you, and every case with its five-step progress, updating live.
+- **Case**: the same five-step story (what happened, what Claude proposed, the eight checks with a reason each, the exact message) beside an append-only timeline.
 - **Approvals**: approve or decline cases at or above the threshold. Approving re-checks timing and limits before sending, and a double click cannot send twice.
 - **Rules**: the eight rules in plain English.
 - **Kill switch**: `KILL_SWITCH=true` stops all sending while diagnosis and checks keep running.
-- **Store**: a one-product checkout with PayPal buttons and a forced-decline toggle.
 
 ## Tools used, and how
 

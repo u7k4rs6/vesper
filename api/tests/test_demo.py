@@ -24,7 +24,7 @@ def no_pipeline(monkeypatch):
 
 @pytest.mark.parametrize(
     "kind,source_amount,hint",
-    [("subscription", "29.00", Hint.soft), ("capture_denied", "89.00", Hint.hard)],
+    [("subscription", "29.00", Hint.soft), ("capture_denied", "89.00", Hint.hard), ("big_order", "640.00", Hint.soft)],
 )
 def test_internal_strategy_seeds_a_case_and_can_repeat(api, session_factory, kind, source_amount, hint):
     for _ in range(2):  # repeatable, unlike PayPal's fixed-id simulated events
