@@ -65,7 +65,6 @@ uv run uvicorn vesper.main:app --reload           # API on :8000
 LLM_PROVIDER=fixture uv run pytest -q             # 122 tests, no network
 cd ../web && cp .env.example .env.local           # same DASHBOARD_TOKEN, PayPal client ID
 npm install && npm run dev                        # web on :3000
-cd ../api && uv run python -m scripts.e2e_sandbox # optional: the full loop against the real sandbox
 ```
 
 For webhooks locally, expose `:8000` with a tunnel and run `uv run python -m scripts.register_webhook` with `PUBLIC_API_URL` set.
