@@ -1,0 +1,231 @@
+{
+  "info": {
+    "name": "Vesper (PayPal sandbox)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Every request goes through the hosted demo's proxy, which adds the dashboard token server-side, so no credentials are needed. Sandbox only. Typical path: Fail a payment, wait ~20 s, List cases, Get one case (set caseId), and Approve or Decline when a case is waiting for approval."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://vesper-web-jilz.onrender.com/api/proxy"
+    },
+    {
+      "key": "caseId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Read",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Sandbox mode, kill switch, demo mode. The first call after idle can take ~50 s while the free instance wakes."
+          }
+        },
+        {
+          "name": "Today's numbers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/metrics/today",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "metrics",
+                "today"
+              ]
+            },
+            "description": "Recovered today and Held back today, as on the Floor."
+          }
+        },
+        {
+          "name": "List cases",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cases?limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cases"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Newest first. Pass cursor=<last id> for the next page, or stage=awaiting_approval."
+          }
+        },
+        {
+          "name": "Get one case",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cases/{{caseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cases",
+                "{{caseId}}"
+              ]
+            },
+            "description": "Diagnosis, proposal, the eight verdicts, the message, and the timeline. Customer data is redacted."
+          }
+        },
+        {
+          "name": "The eight rules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rules",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rules"
+              ]
+            },
+            "description": "Plain-English rules, exactly as the Rules page shows them."
+          }
+        },
+        {
+          "name": "Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            },
+            "description": "Approval threshold, contact window, kill switch, merchant timezone."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Act",
+      "item": [
+        {
+          "name": "Fail a payment (subscription)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/demo/fail",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "demo",
+                "fail"
+              ]
+            },
+            "description": "Creates a case for the next demo customer; Claude and the rules run within ~20 s. Rate-limited to 6 a minute.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kind\": \"subscription\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Fail a payment (card capture denied)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/demo/fail",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "demo",
+                "fail"
+              ]
+            },
+            "description": "A hard failure: Vesper does not chase it.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kind\": \"capture_denied\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Approve and send",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cases/{{caseId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cases",
+                "{{caseId}}",
+                "approve"
+              ]
+            },
+            "description": "Only for a case waiting for approval (at or above $500). Re-checks timing, frequency and freeze, then sends or queues. A repeat returns 409."
+          }
+        },
+        {
+          "name": "Don't send",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cases/{{caseId}}/decline",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cases",
+                "{{caseId}}",
+                "decline"
+              ]
+            },
+            "description": "Holds the case; nothing is sent. A repeat returns 409."
+          }
+        }
+      ]
+    }
+  ]
+}

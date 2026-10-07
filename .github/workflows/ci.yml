@@ -26,6 +26,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --frozen
+      - name: Invariant test table unchanged and complete (docs/04_SECURITY.md §6)
+        run: uv run python -m scripts.check_invariant_table
       - name: Tests (SQLite)
         run: uv run pytest -q
       - name: Tests (Postgres 17, as deployed)
