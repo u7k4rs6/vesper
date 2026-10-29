@@ -42,7 +42,7 @@ export default function Floor() {
         <p className="label">The merchant&apos;s view</p>
         <h1 className="display mt-3 text-[40px] sm:text-[56px]">Floor</h1>
         <p className="mt-3 max-w-[560px] text-ink-2">
-          Every failed payment, and what Vesper did about it. Updates live.
+          Every failed payment, and what Vesper did.
         </p>
       </section>
 
@@ -55,9 +55,9 @@ export default function Floor() {
           sub={m ? `from ${m.recovered_count} ${m.recovered_count === 1 ? "payment" : "payments"}` : ""}
           tone={m && Number(m.recovered_total) > 0 ? "text-recovered" : ""}
         />
-        <Stat value={m ? String(m.held_back_count) : "—"} label="Held back today" sub="messages the rules stopped or delayed" />
-        <Stat value={m ? String(m.queued_count) : "—"} label="Queued" sub="waiting for 09:00 in the customer's time zone" tone={m?.queued_count ? "text-deferred" : ""} />
-        <Stat value={awaiting ? String(waiting) : "—"} label="Waiting for you" sub="at or above the approval threshold" tone={waiting ? "text-deferred" : ""} />
+        <Stat value={m ? String(m.held_back_count) : "—"} label="Held back today" sub="stopped or delayed by a rule" />
+        <Stat value={m ? String(m.queued_count) : "—"} label="Queued" sub="for 09:00 local" tone={m?.queued_count ? "text-deferred" : ""} />
+        <Stat value={awaiting ? String(waiting) : "—"} label="Waiting for you" sub="over the approval limit" tone={waiting ? "text-deferred" : ""} />
       </div>
 
       <div className="mt-10 mb-3 flex items-baseline justify-between">

@@ -2,17 +2,17 @@
 // stage strip can never disagree about where a case is.
 import { languageName, money } from "@/lib/format";
 import type { CaseDetail, Stage } from "@/lib/types";
-import { ACTION_WORDS, SOURCE_WORDS } from "@/lib/types";
+import { ACTION_WORDS } from "@/lib/types";
 
 export type StepState = "todo" | "active" | "done" | "waiting" | "stopped" | "won";
 export type Actor = "paypal" | "model" | "code" | "customer";
 
 export const STEPS = [
-  { key: "failed", n: "01", title: "Failed", short: "Fail", actor: "paypal" as Actor, caption: "PayPal reports a failed payment" },
-  { key: "diagnosed", n: "02", title: "Diagnosed", short: "Diagnose", actor: "model" as Actor, caption: "Claude reads the evidence" },
-  { key: "proposed", n: "03", title: "Proposed", short: "Propose", actor: "model" as Actor, caption: "Claude picks one of four actions" },
-  { key: "checked", n: "04", title: "Checked", short: "Check", actor: "code" as Actor, caption: "Eight rules in code decide" },
-  { key: "recovered", n: "05", title: "Recovered", short: "Recover", actor: "customer" as Actor, caption: "The customer pays a PayPal invoice" },
+  { key: "failed", n: "01", title: "Failed", short: "Fail", actor: "paypal" as Actor },
+  { key: "diagnosed", n: "02", title: "Diagnosed", short: "Diagnose", actor: "model" as Actor },
+  { key: "proposed", n: "03", title: "Proposed", short: "Propose", actor: "model" as Actor },
+  { key: "checked", n: "04", title: "Checked", short: "Check", actor: "code" as Actor },
+  { key: "recovered", n: "05", title: "Recovered", short: "Recover", actor: "customer" as Actor },
 ] as const;
 
 export const ACTOR_LABEL: Record<Actor, string> = {
@@ -68,28 +68,9 @@ const CLOSED_WORDS: Record<string, string> = {
   invoice_cancelled: "the invoice was cancelled",
 };
 
-export function failedLine(c: CaseDetail): string {
-  const what = `${c.failure_code} on ${c.description} for ${money(c.amount, c.currency)}`;
-  // Seeded cases come from the demo button, not from PayPal; say so rather than borrow PayPal's voice.
-  return c.source === "seeded"
-    ? `A demo failure, shaped exactly as PayPal reports one: ${what}.`
-    : `${SOURCE_WORDS[c.source]}: PayPal reported ${what}.`;
-}
-
-/** Why step 05 never happened, naming who stopped it. */
+/** Step 05 for a case the rules or Claude stopped. */
 export function notChasedLine(c: CaseDetail): string | null {
-  switch (c.stage) {
-    case "held":
-      return "Not chased: the rules stopped it, so the customer never heard from Vesper.";
-    case "escalated":
-      return "Not chased: handed to a person instead.";
-    case "closed":
-      return c.closed_reason === "no_action"
-        ? "Not chased: Claude chose not to contact the customer."
-        : `Not chased: ${CLOSED_WORDS[c.closed_reason ?? ""] ?? "the case closed"}.`;
-    default:
-      return null;
-  }
+  return TERMINAL_STOP.includes(c.stage) ? "Not sent." : null;
 }
 
 export function proposedHeadline(c: CaseDetail): string | null {
@@ -106,7 +87,7 @@ export function outcomeLine(c: CaseDetail, threshold?: string): string | null {
   const by = (id: string) => c.verdicts!.find((v) => v.rule_id === id);
   switch (c.stage) {
     case "awaiting_approval":
-      return `${money(c.amount, c.currency)} is at or above your ${threshold ? money(threshold, c.currency) : "approval"} threshold, so a person decides.`;
+      return `${money(c.amount, c.currency)} is over your ${threshold ? money(threshold, c.currency) : "approval"} limit. You decide.`;
     case "scheduled": {
       // R4's reason reads "It is 06:22 in Mexico City. Queued for 09:00." When the queueing happened later,
       // at approval time, the re-check's reason is in the timeline instead.
@@ -114,36 +95,25 @@ export function outcomeLine(c: CaseDetail, threshold?: string): string | null {
       const requeue = [...c.events].reverse().find((e) => e.kind === "scheduled" && e.text.includes("It is"));
       const reason = r4?.verdict === "defer" ? r4.reason : requeue?.text.slice(requeue.text.indexOf("It is"));
       return reason
-        ? `${reason.split(".")[0]}, outside 09:00–20:00, so it is queued for 09:00 local time.`
-        : "Queued; it goes out when the rules allow.";
+        ? `${reason.split(".")[0]}. Queued for 09:00 local.`
+        : "Queued until the rules allow.";
     }
     case "waiting":
-      return "The payment may still clear, so Vesper waits instead of messaging.";
+      return "It may still clear. Vesper waits.";
     case "sent":
     case "recovered":
       return c.verdicts.some((v) => v.verdict === "approve")
-        ? "You approved it, the rules re-checked timing and limits, and PayPal emailed the invoice."
-        : "All eight rules allowed it. PayPal emailed the invoice to the customer.";
+        ? "Approved. Invoice sent."
+        : "All clear. Invoice sent.";
     case "held":
-      return c.reason_short ? `Held: ${c.reason_short}. Nothing was sent.` : "Held. Nothing was sent.";
+      return "Held.";
     case "escalated":
-      return "Handed to a person. Nothing was sent.";
+      return "Handed to a person.";
     case "closed":
-      return `Closed: ${CLOSED_WORDS[c.closed_reason ?? ""] ?? "closed"}. Nothing was sent.`;
+      return `Closed: ${CLOSED_WORDS[c.closed_reason ?? ""] ?? "closed"}.`;
     default:
       return null;
   }
-}
-
-export function verdictCounts(c: CaseDetail): string | null {
-  if (!c.verdicts) return null;
-  const n = { allow: 0, defer: 0, approve: 0, refuse: 0 };
-  for (const v of c.verdicts) n[v.verdict]++;
-  const parts = [`${n.allow} allow`];
-  if (n.defer) parts.push(`${n.defer} defer`);
-  if (n.approve) parts.push(`${n.approve} need approval`);
-  if (n.refuse) parts.push(`${n.refuse} refuse`);
-  return parts.join(" · ");
 }
 
 /** Step states from the stage alone, for list rows that don't carry the full case. */
