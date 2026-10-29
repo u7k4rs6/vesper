@@ -69,6 +69,9 @@ export default function CasePage({ params }: { params: Promise<{ id: string }> }
         <aside>
           <h2 className="label mb-3 text-ink">Timeline</h2>
           <Timeline events={c.events} timeZone={settings?.merchant_timezone ?? "UTC"} />
+          <p className="mt-3 text-[13px] leading-5 text-ink-2">
+            Append-only. Times are the merchant&apos;s ({settings?.merchant_timezone ?? "UTC"}).
+          </p>
         </aside>
       </div>
     </>

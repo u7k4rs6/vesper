@@ -3,14 +3,16 @@
 import { ApprovalButtons } from "@/components/ApprovalPanel";
 import { ChecksGrid } from "@/components/ChecksGrid";
 import { ActorTag } from "@/components/StageStrip";
-import { clock, money } from "@/lib/format";
+import { clock, languageName } from "@/lib/format";
 import {
+  failedLine,
   notChasedLine,
   outcomeLine,
   proposedHeadline,
   STEPS,
   stepStates,
   type StepState,
+  verdictCounts,
 } from "@/lib/story";
 import type { CaseDetail, Settings } from "@/lib/types";
 
@@ -46,70 +48,98 @@ export function CaseStory({ c, settings }: { c: CaseDetail; settings?: Settings 
 
   const body = [
     // 01 Failed
-    <p key="failed">
-      {c.failure_code}
-      <span className="text-ink-2">
-        {" "}
-        · {c.description} · {money(c.amount, c.currency)}
-      </span>
-    </p>,
+    <>
+      <p>{failedLine(c)}</p>
+      <p className="mt-1 text-ink-2">
+        The customer is {c.first_name}, in {c.place}.
+      </p>
+    </>,
     // 02 Diagnosed
     c.diagnosis ? (
-      <p>{c.diagnosis.cause}</p>
+      <>
+        <p>{c.diagnosis.cause}</p>
+        <p className="mt-2 text-ink-2">{c.diagnosis.customer_context}</p>
+        <p className="label mt-2">Confidence: {c.diagnosis.confidence}</p>
+      </>
     ) : states[1] === "active" ? (
-      <p className="text-ink-2">Reading the evidence…</p>
+      <p className="text-ink-2">
+        Claude is reading the evidence: the failure code, the amount, the customer&apos;s first name, country and
+        local time. Never their email, and never a PayPal id.
+      </p>
     ) : states[1] === "stopped" ? (
-      <p className="text-refused">{lastEvent(c, ["escalated"]) ?? "Stopped."}</p>
+      <p className="text-refused">{lastEvent(c, ["escalated"]) ?? "Stopped before a diagnosis."}</p>
     ) : null,
     // 03 Proposed
     c.proposal ? (
       <>
         <p className="font-medium">{proposedHeadline(c)}</p>
+        <p className="mt-1 text-ink-2">{c.proposal.rationale}</p>
         {c.message && (
-          <>
-            <blockquote lang={c.message.language} className="mt-2 border-l-2 border-line pl-3 text-ink-2">
+          <figure className="mt-3 border border-line bg-paper px-4 py-3">
+            <figcaption className="label mb-1.5">
+              Message on the invoice · {languageName(c.message.language)}
+              {c.message.fallback_used ? " · standard template" : ""}
+            </figcaption>
+            <blockquote lang={c.message.language} className="text-[15px] leading-6">
               {c.message.rendered}
             </blockquote>
-            <p className="label mt-1.5 pl-3.5">
-              {c.message.fallback_used ? "Standard template" : "Words by Claude · numbers by code"}
+            <p className="mt-2 text-[13px] leading-5 text-ink-2">
+              {c.message.fallback_used
+                ? "Claude's draft failed the safety check, so Vesper's standard template was used instead."
+                : "Claude wrote the words. Every name, amount and date was filled in by code."}
             </p>
-          </>
+          </figure>
         )}
       </>
     ) : states[2] === "active" ? (
-      <p className="text-ink-2">Choosing an action…</p>
+      <p className="text-ink-2">
+        Claude is choosing one of four actions: send an invoice, wait, hand to a person, or do nothing. None of
+        them carries an amount.
+      </p>
     ) : states[2] === "stopped" ? (
-      <p className="text-refused">{lastEvent(c, ["escalated"]) ?? "Stopped."}</p>
+      <p className="text-refused">{lastEvent(c, ["escalated"]) ?? "Stopped before a proposal."}</p>
     ) : null,
     // 04 Checked
     c.verdicts ? (
       <>
-        <p className="font-medium">{outcomeLine(c, settings?.approval_threshold)}</p>
+        <p className="label">8 rules ran in code · {verdictCounts(c)}</p>
+        <p className="mt-1 font-medium">{outcomeLine(c, settings?.approval_threshold)}</p>
         {c.stage === "awaiting_approval" && (
           <div className="mt-3">
             <ApprovalButtons caseId={c.id} />
           </div>
         )}
-        <div className="mt-2">
+        <div className="mt-3">
           <ChecksGrid verdicts={c.verdicts} />
         </div>
       </>
     ) : states[3] === "active" ? (
-      <p className="text-ink-2">Running the rules…</p>
+      <p className="text-ink-2">Running the eight rules. They read PayPal&apos;s code, not the model&apos;s opinion.</p>
     ) : null,
     // 05 Recovered
     c.stage === "recovered" ? (
       <p className="font-medium text-recovered">
-        Paid{c.recovered_at ? ` at ${clock(c.recovered_at, tz)}` : ""}. Confirmed by PayPal.
+        Paid. PayPal confirmed it with a signed webhook
+        {c.recovered_at ? ` at ${clock(c.recovered_at, tz)}` : ""}. Nobody was charged by Vesper.
       </p>
-    ) : c.stage === "sent" && c.message?.payer_link ? (
-      <button className="btn btn-primary" onClick={() => openInvoice(c.message!.payer_link!)}>
-        Pay as the customer ↗
-      </button>
+    ) : c.stage === "sent" ? (
+      <>
+        <p>
+          PayPal emailed the invoice. Pay it as the customer to finish the loop: log in as the sandbox buyer, and
+          this page turns Recovered on its own once PayPal confirms.
+        </p>
+        {c.message?.payer_link && (
+          <button className="btn btn-primary mt-3" onClick={() => openInvoice(c.message!.payer_link!)}>
+            Pay as the customer ↗
+          </button>
+        )}
+      </>
     ) : c.stage === "scheduled" ? (
-      <p className="text-ink-2">Sends at 09:00 their time.</p>
+      <p className="text-ink-2">The invoice goes out when the window opens; the customer can pay it then.</p>
+    ) : c.stage === "awaiting_approval" ? (
+      <p className="text-ink-2">Once approved, PayPal emails the invoice and the customer can pay it.</p>
     ) : c.stage === "waiting" ? (
-      <p className="text-ink-2">Waiting for the payment to clear.</p>
+      <p className="text-ink-2">If the payment clears, PayPal tells Vesper and the case closes.</p>
     ) : notChasedLine(c) ? (
       <p className="text-ink-2">{notChasedLine(c)}</p>
     ) : null,
@@ -135,7 +165,7 @@ export function CaseStory({ c, settings }: { c: CaseDetail; settings?: Settings 
                 {chip && <span className={`label ${chip.className}`}>{chip.text}</span>}
               </div>
               <div className="mt-1 max-w-[680px] reveal" key={`${s.key}-${state}`}>
-                {body[i]}
+                {body[i] ?? <p className="text-ink-3">{s.caption}.</p>}
               </div>
             </div>
           </li>

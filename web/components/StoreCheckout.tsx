@@ -93,7 +93,12 @@ export function StoreCheckout({ clientId, onCase }: { clientId: string; onCase: 
           checked={forceDecline}
           onChange={(e) => setForceDecline(e.target.checked)}
         />
-        <span>Make it fail</span>
+        <span>
+          Make the payment fail
+          <span className="block text-[13px] leading-5 text-ink-2">
+            PayPal&apos;s sandbox returns a real INSTRUMENT_DECLINED.
+          </span>
+        </span>
       </label>
       <div ref={container} className="mt-3 min-h-[44px]" />
       {note && (

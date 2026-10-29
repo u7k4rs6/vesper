@@ -47,20 +47,22 @@ export function ScenarioCards({ settings, onCase }: { settings?: Settings; onCas
     <div className="grid gap-4 md:grid-cols-3">
       <Card n="01" title="A renewal bounces">
         <p className="mt-2 flex-1 text-ink-2">
-A $29 subscription renewal fails.
+          A $29 monthly subscription fails. Watch Claude diagnose it and the rules decide whether, and when, the
+          customer hears about it.
         </p>
-        <div className="mt-4" />
+        <p className="label mt-4 mb-2">Six customers, six time zones</p>
         <FailButton kind="subscription" label="Fail a renewal" onCase={onCase} />
       </Card>
 
       <Card n="02" title="A card declines at checkout" id="checkout">
         <p className="mt-2 text-ink-2">
-Buy the $89 Linen Throw. PayPal declines it for real.
+          Buy the $89 Linen Throw with PayPal&apos;s own buttons. PayPal declines it for real and Vesper opens the case.
         </p>
         {settings?.sandbox_buyer_email && (
           <p className="mt-3 border border-line bg-paper px-3 py-2 text-[13px] leading-5">
             <span className="label block">Log in to PayPal as</span>
             <span className="font-mono text-[12px] break-all">{settings.sandbox_buyer_email}</span>
+            <span className="block text-ink-2">Password: in the submission form.</span>
           </p>
         )}
         <div className="mt-4 flex-1">
@@ -74,9 +76,10 @@ Buy the $89 Linen Throw. PayPal declines it for real.
 
       <Card n="03" title="A big order needs you">
         <p className="mt-2 flex-1 text-ink-2">
-A $640 order fails. Over $500, you decide.
+          A $640 order fails. Anything at or above $500 waits for a person, so the case stops and asks you to
+          approve or decline, right here.
         </p>
-        <div className="mt-4" />
+        <p className="label mt-4 mb-2">You decide what happens next</p>
         <FailButton kind="big_order" label="Fail a big order" onCase={onCase} />
       </Card>
     </div>

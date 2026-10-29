@@ -23,6 +23,7 @@ export function StageStrip({ states, current }: { states?: StepState[]; current?
               <span className={`label !text-[10px] sm:!text-[11px] ${on ? "text-ink" : ""}`}>{s.short}</span>
             </div>
             <div className={`mt-2 h-[3px] ${states ? BAR[state] : "bg-ink"}`} />
+            <p className="mt-2 hidden text-[13px] leading-5 text-ink-2 md:block">{s.caption}</p>
             <p className="mt-1 hidden md:block">
               <ActorTag actor={s.actor} />
             </p>

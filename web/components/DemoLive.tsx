@@ -43,6 +43,7 @@ export function DemoLive() {
       <section className="pt-12">
         <div className="mb-4 flex items-baseline justify-between gap-4">
           <h2 className="label text-ink">Start here · pick a failure</h2>
+          <span className="label hidden sm:inline">Everything below is live PayPal sandbox</span>
         </div>
         <ScenarioCards settings={settings} onCase={watch} />
       </section>
@@ -52,13 +53,14 @@ export function DemoLive() {
           <h2 className="label text-ink">Live case</h2>
           {live && (
             <Link href={`/cases/${live.id}`} className="label hover:text-ink">
-              Full case →
+              Open full case with timeline →
             </Link>
           )}
         </div>
         {!caseId ? (
           <div className="border border-dashed border-ink/25 bg-surface/60 px-6 py-12 text-center">
-            <p className="text-lg font-medium">Pick a failure. The case appears here.</p>
+            <p className="text-lg font-medium">Your case will appear here.</p>
+            <p className="mt-1 text-ink-2">Pick a failure above. It fills in step by step, in about twenty seconds.</p>
           </div>
         ) : !live ? (
           <p className="label pulse">Opening the case…</p>
