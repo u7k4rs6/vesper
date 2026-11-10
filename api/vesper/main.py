@@ -18,7 +18,7 @@ settings = get_settings()  # aborts startup unless PAYPAL_ENV=sandbox
 
 structlog.configure(
     processors=[structlog.processors.add_log_level, structlog.processors.TimeStamper(fmt="iso"),
-                structlog.processors.JSONRenderer()],
+                structlog.processors.format_exc_info, structlog.processors.JSONRenderer()],
     wrapper_class=structlog.make_filtering_bound_logger(getattr(logging, settings.log_level.upper(), logging.INFO)),
 )
 

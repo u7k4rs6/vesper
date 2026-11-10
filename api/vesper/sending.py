@@ -62,7 +62,7 @@ def send_case(session: Session, case: Case, now: datetime) -> None:
         return
     except _Unavailable:
         case.stage = Stage.held
-        add_event(session, case, "held", "PayPal was unavailable; try again from the case.")
+        add_event(session, case, "held", "PayPal was unavailable after three tries. Nothing was sent.")
         return
     except PayPalError as e:
         case.stage = Stage.held

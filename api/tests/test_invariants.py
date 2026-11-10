@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 
 from vesper.config import Settings
-from vesper.models import CaseEvent
 
 API = Path(__file__).resolve().parents[1]
 SOURCES = [p for p in API.rglob("*.py") if ".venv" not in p.parts and "tests" not in p.parts]

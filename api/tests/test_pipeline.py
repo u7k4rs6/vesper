@@ -166,7 +166,45 @@ def test_paypal_outage_holds_after_retries(session, paypal):
     run_case(session, case.id, MIDDAY)
     session.refresh(case)
     assert case.stage == Stage.held
-    assert events(case)[-1] == "PayPal was unavailable; try again from the case."
+    assert events(case)[-1] == "PayPal was unavailable after three tries. Nothing was sent."
+
+
+def test_token_outage_holds_instead_of_stranding_the_case(session, paypal):
+    # A failed token request used to raise httpx.HTTPStatusError, which nothing caught: the case stayed Checked.
+    paypal.post("/v1/oauth2/token").respond(503, text="<html>Service Unavailable</html>")
+    case = make_case(session)
+    run_case(session, case.id, MIDDAY)
+    session.refresh(case)
+    assert case.stage == Stage.held
+    assert events(case)[-1] == "PayPal was unavailable after three tries. Nothing was sent."
+
+
+def test_html_error_page_is_a_paypal_error_not_a_crash(session, paypal):
+    paypal.post("/v2/invoicing/generate-next-invoice-number").respond(502, text="<html>Bad Gateway</html>")
+    case = make_case(session)
+    run_case(session, case.id, MIDDAY)
+    session.refresh(case)
+    assert case.stage == Stage.held
+
+
+def test_unexpected_error_hands_the_case_to_a_person(session_factory, monkeypatch):
+    from vesper import db
+    from vesper.pipeline import run as run_module
+
+    monkeypatch.setattr(db, "SessionLocal", session_factory)
+    with session_factory() as s:
+        case_id = make_case(s).id
+        s.commit()
+
+    def boom(*a, **kw):
+        raise RuntimeError("surprise")
+
+    monkeypatch.setattr(run_module, "diagnose", boom)
+    run_module.run_case_in_new_session(case_id)
+    with session_factory() as s:
+        case = s.get(run_module.Case, case_id)
+        assert case.stage == Stage.escalated
+        assert events(case)[-1] == "Vesper hit an unexpected error, so a person should look at this case."
 
 
 def test_model_budget_exhausted_escalates(session, paypal, monkeypatch):

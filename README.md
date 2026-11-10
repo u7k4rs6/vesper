@@ -4,7 +4,7 @@
 
 Stripe merchants have had failed-payment recovery for years: Smart Retries and a whole category of dunning tools. PayPal merchants have almost nothing, so a declined card is usually a customer who wanted to pay and never hears from the store again. Vesper is the recovery layer PayPal merchants never had.
 
-![A payment fails, Vesper diagnoses it, proposes an invoice, and the Contact window rule queues it for 09:00 in the customer's time zone; the case page shows the eight checks and the Spanish message with every number filled in by code](docs/img/loop.gif)
+![A $29 renewal fails; Claude diagnoses it and writes the invoice message in Spanish, code fills in every name, amount and date, all eight rules allow it, and PayPal emails the invoice](docs/img/loop.gif)
 
 **Live demo:** https://vesper-web-jilz.onrender.com (sandbox only; the first visit after a quiet spell can take about a minute while the free instance wakes)
 
@@ -62,7 +62,7 @@ git clone https://github.com/u7k4rs6/vesper && cd vesper/api
 cp .env.example .env                              # sandbox app keys, buyer email, Anthropic key
 uv sync && uv run alembic upgrade head && uv run python -m scripts.seed_demo
 uv run uvicorn vesper.main:app --reload           # API on :8000
-LLM_PROVIDER=fixture uv run pytest -q             # 122 tests, no network
+LLM_PROVIDER=fixture uv run pytest -q             # 127 tests, no network
 cd ../web && cp .env.example .env.local           # same DASHBOARD_TOKEN, PayPal client ID
 npm install && npm run dev                        # web on :3000
 cd ../api && uv run python -m scripts.e2e_sandbox # optional: one full loop against the real sandbox

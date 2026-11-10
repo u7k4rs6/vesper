@@ -22,6 +22,13 @@ class PayPalError(Exception):
         return [d.get("issue", "") for d in self.body.get("details", []) if isinstance(d, dict)]
 
 
+def _body(r: httpx.Response) -> dict[str, Any]:
+    try:
+        return r.json() if r.content else {}
+    except ValueError:  # a gateway's HTML error page, not PayPal's JSON
+        return {"name": "NON_JSON_RESPONSE"}
+
+
 class PayPalClient:
     def __init__(self, transport: httpx.BaseTransport | None = None):
         settings = get_settings()
@@ -41,8 +48,9 @@ class PayPalClient:
             data={"grant_type": "client_credentials"},
             auth=(self._client_id, self._secret),
         )
-        r.raise_for_status()
-        body = r.json()
+        body = _body(r)
+        if r.status_code >= 400:
+            raise PayPalError(r.status_code, body)
         self._token = body["access_token"]
         self._token_expires_at = time.monotonic() + int(body.get("expires_in", 0)) - 60
         return self._token
@@ -63,7 +71,7 @@ class PayPalClient:
         if headers:
             h.update(headers)
         r = self._http.request(method, path, json=json, content=content, headers=h)
-        body = r.json() if r.content else {}
+        body = _body(r)
         if r.status_code >= 400:
             raise PayPalError(r.status_code, body)
         return body

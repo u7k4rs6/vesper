@@ -2,12 +2,10 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import select
 
 from tests.helpers import make_case
 from vesper import sending
 from vesper.models import Case, Stage
-from vesper.pipeline import run as run_module
 from vesper.pipeline.run import run_case
 
 AUTH = {"X-Dashboard-Token": "test-token"}

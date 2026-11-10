@@ -226,3 +226,12 @@ def run_case_in_new_session(case_id: str) -> None:
         except Exception:
             session.rollback()
             log.exception("pipeline_failed", case_id=case_id)
+            # never leave a case silently mid-pipeline: hand it to a person, with a reason on its timeline
+            try:
+                case = session.get(Case, case_id)
+                if case and case.stage in (Stage.failed, Stage.diagnosed, Stage.proposed, Stage.checked):
+                    _escalate(session, case, "Vesper hit an unexpected error, so a person should look at this case.")
+                    session.commit()
+            except Exception:
+                session.rollback()
+                log.exception("pipeline_escalate_failed", case_id=case_id)
